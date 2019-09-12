@@ -1,21 +1,22 @@
 #import
-from Tkinter import *
+from tkinter import *
 try:
-    from ttk import *
+    from tkinter.ttk import *
 except ImportError:
-    print "import ttk error"
+    print("import ttk error")
+from tkinter.dnd import *
 #comment
-print 'Hello World'
+print('Hello World')
 #loop
 for i in range(1,5):
     for j in range(1,5):
-        print i,"x",j,"=",i*j
+        print(i,"x",j,"=",i*j)
 else:
-    print "the for loop is over"
+    print("the for loop is over")
 #func
 def hello():
     global count
-    print "click count ",count
+    print("click count ",count)
     count+=1
 count=0
 #new win

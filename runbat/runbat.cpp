@@ -7,13 +7,14 @@
 #include <fstream>
 #include <atlstr.h>
 #include <direct.h>
+#include <CString>
 
 
 #include <vector>
 #include <stdio.h>
 #include <io.h>
 #include <regex>
-#define MY_PIPE_BUFFER_SIZE 1024
+#define MY_PIPE_BUFFER_SIZE 4096
 LPCWSTR stringToLPCWSTR(std::string orig)
 {
 	size_t origsize = orig.length() + 1;
@@ -66,6 +67,60 @@ wchar_t* StringToWchar(const std::string& s)
 	return CharToWchar(p);
 }
 
+
+typedef struct _ASTAT_
+{
+	ADAPTER_STATUS adapt;
+	NAME_BUFFER NameBuff[30];
+} ASTAT, * PASTAT;
+
+/*void getMac(char* mac)
+{
+	ASTAT Adapter;
+	NCB Ncb;
+	UCHAR uRetCode;
+	LANA_ENUM lenum;
+	int i = 0;
+
+	memset(&Ncb, 0, sizeof(Ncb));
+	Ncb.ncb_command = NCBENUM;
+	Ncb.ncb_buffer = (UCHAR*)&lenum;
+	Ncb.ncb_length = sizeof(lenum);
+
+	uRetCode = Netbios(&Ncb);
+	printf("The NCBENUM return adapter number is: %d \n ", lenum.length);
+	for (i = 0; i < lenum.length; i++)
+	{
+		memset(&Ncb, 0, sizeof(Ncb));
+		Ncb.ncb_command = NCBRESET;
+		Ncb.ncb_lana_num = lenum.lana[i];
+		uRetCode = Netbios(&Ncb);
+
+		memset(&Ncb, 0, sizeof(Ncb));
+		Ncb.ncb_command = NCBASTAT;
+		Ncb.ncb_lana_num = lenum.lana[i];
+		const char* str1 = "* ";
+		strcpy_s((char*)Ncb.ncb_callname,strlen(str1)+1,str1);
+		Ncb.ncb_buffer = (unsigned char*)&Adapter;
+		Ncb.ncb_length = sizeof(Adapter);
+		uRetCode = Netbios(&Ncb);
+
+		if (uRetCode == 0)
+		{
+			sprintf_s(mac,sizeof(mac), "%02x-%02x-%02x-%02x-%02x-%02x ",
+			//sprintf_s(mac, "%02X%02X%02X%02X%02X%02X ",
+				Adapter.adapt.adapter_address[0],
+				Adapter.adapt.adapter_address[1],
+				Adapter.adapt.adapter_address[2],
+				Adapter.adapt.adapter_address[3],
+				Adapter.adapt.adapter_address[4],
+				Adapter.adapt.adapter_address[5]
+			);
+			//printf( "The Ethernet Number on LANA %d is: %s\n ", lenum.lana[i], mac);
+		}
+	}
+}*/
+
 bool StartProcess(LPCWSTR program, LPCWSTR args)
 {
 	bool ret = true;
@@ -113,10 +168,11 @@ bool StartProcess(LPCWSTR program, LPCWSTR args)
 				{
 					printf("5");
 					char szPipeOut[MY_PIPE_BUFFER_SIZE];
-					::ZeroMemory(szPipeOut, sizeof(szPipeOut));
+					::ZeroMemory(szPipeOut, sizeof(szPipeOut),MY_PIPE_BUFFER_SIZE);
 					if (ReadFile(hPipeRead, szPipeOut, dwReadLen, &dwStdLen, NULL))
 					{
-						printf(szPipeOut);
+						szPipeOut[MY_PIPE_BUFFER_SIZE - 1] = 0;
+						printf("%s",szPipeOut);
 						std::string errtxt = "invocation forwarded to primary instance";
 						if (errtxt.compare(szPipeOut)) {
 							printf("相等");
@@ -132,6 +188,9 @@ bool StartProcess(LPCWSTR program, LPCWSTR args)
 					int a = 1;
 				}
 			}
+			else {
+				printf("6");
+			}
 		}
 		if (processInfo.hProcess)
 		{
@@ -146,9 +205,40 @@ bool StartProcess(LPCWSTR program, LPCWSTR args)
 	CloseHandle(hPipeWrite);
 	return ret;
 }
+
+std::string DwordToString(DWORD val)
+{
+	std::string cur_str = std::to_string(long long(val));
+	return cur_str;
+}
 int main()
 {
-    std::cout << "Hello World!\n"; 
+	//WIN32_FILE_ATTRIBUTE_DATA    attr;     //文件属性结构体
+	//TCHAR file[20] = L"C:\\";     //文件名
+	//GetFileAttributesEx(file, GetFileExInfoStandard, &attr);        //获取文件属性
+	//FILETIME createTime = attr.ftCreationTime;                    //获取文件时间
+	//FILETIME accessTime = attr.ftLastAccessTime;
+	//FILETIME modifyTime = attr.ftLastWriteTime;
+	//SYSTEMTIME time;                                                     //系统时间结构体
+	//FileTimeToSystemTime(&createTime, &time);             //将文件事件转换为系统时间
+	//printf("注册码\n");
+	//std::string thetime = DwordToString(createTime.dwHighDateTime);
+	//printf(thetime.c_str());
+	//printf("\n");
+	//std::ifstream timefile("注册码.txt");
+	//if (timefile.is_open()) {
+	//}
+	//else
+	//{
+		//printf("放入注册码.txt\n");
+		//char name[50];
+		//std::cin >> name;
+	//}
+
+	//char* mac = new char[32];
+	//getMac(mac);
+	//printf("%s\n ", mac);
+    //std::cout << "Hello World!\n"; 
 	//system("run.bat");
 	//run py
 	//WinExec("cmd /c run.bat", SW_HIDE);
@@ -174,7 +264,7 @@ int main()
 
 	int i = 0;
 	while (true) {
-
+		printf("true\n");
 		std::ifstream myfile(fileinfo.name);
 		std::string fileinfoname =fileinfo.name;
 		fileinfoname = "xml\\" + fileinfoname;

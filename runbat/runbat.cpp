@@ -8,12 +8,11 @@
 #include <atlstr.h>
 #include <direct.h>
 #include <CString>
-
-
 #include <vector>
 #include <stdio.h>
 #include <io.h>
 #include <regex>
+#include "CMyINI.h"
 #define MY_PIPE_BUFFER_SIZE 4096
 LPCWSTR stringToLPCWSTR(std::string orig)
 {
@@ -66,60 +65,6 @@ wchar_t* StringToWchar(const std::string& s)
 	const char* p = s.c_str();
 	return CharToWchar(p);
 }
-
-
-typedef struct _ASTAT_
-{
-	ADAPTER_STATUS adapt;
-	NAME_BUFFER NameBuff[30];
-} ASTAT, * PASTAT;
-
-/*void getMac(char* mac)
-{
-	ASTAT Adapter;
-	NCB Ncb;
-	UCHAR uRetCode;
-	LANA_ENUM lenum;
-	int i = 0;
-
-	memset(&Ncb, 0, sizeof(Ncb));
-	Ncb.ncb_command = NCBENUM;
-	Ncb.ncb_buffer = (UCHAR*)&lenum;
-	Ncb.ncb_length = sizeof(lenum);
-
-	uRetCode = Netbios(&Ncb);
-	printf("The NCBENUM return adapter number is: %d \n ", lenum.length);
-	for (i = 0; i < lenum.length; i++)
-	{
-		memset(&Ncb, 0, sizeof(Ncb));
-		Ncb.ncb_command = NCBRESET;
-		Ncb.ncb_lana_num = lenum.lana[i];
-		uRetCode = Netbios(&Ncb);
-
-		memset(&Ncb, 0, sizeof(Ncb));
-		Ncb.ncb_command = NCBASTAT;
-		Ncb.ncb_lana_num = lenum.lana[i];
-		const char* str1 = "* ";
-		strcpy_s((char*)Ncb.ncb_callname,strlen(str1)+1,str1);
-		Ncb.ncb_buffer = (unsigned char*)&Adapter;
-		Ncb.ncb_length = sizeof(Adapter);
-		uRetCode = Netbios(&Ncb);
-
-		if (uRetCode == 0)
-		{
-			sprintf_s(mac,sizeof(mac), "%02x-%02x-%02x-%02x-%02x-%02x ",
-			//sprintf_s(mac, "%02X%02X%02X%02X%02X%02X ",
-				Adapter.adapt.adapter_address[0],
-				Adapter.adapt.adapter_address[1],
-				Adapter.adapt.adapter_address[2],
-				Adapter.adapt.adapter_address[3],
-				Adapter.adapt.adapter_address[4],
-				Adapter.adapt.adapter_address[5]
-			);
-			//printf( "The Ethernet Number on LANA %d is: %s\n ", lenum.lana[i], mac);
-		}
-	}
-}*/
 
 bool StartProcess(LPCWSTR program, LPCWSTR args)
 {
@@ -213,55 +158,28 @@ std::string DwordToString(DWORD val)
 }
 int main()
 {
-	//WIN32_FILE_ATTRIBUTE_DATA    attr;     //文件属性结构体
-	//TCHAR file[20] = L"C:\\";     //文件名
-	//GetFileAttributesEx(file, GetFileExInfoStandard, &attr);        //获取文件属性
-	//FILETIME createTime = attr.ftCreationTime;                    //获取文件时间
-	//FILETIME accessTime = attr.ftLastAccessTime;
-	//FILETIME modifyTime = attr.ftLastWriteTime;
-	//SYSTEMTIME time;                                                     //系统时间结构体
-	//FileTimeToSystemTime(&createTime, &time);             //将文件事件转换为系统时间
-	//printf("注册码\n");
-	//std::string thetime = DwordToString(createTime.dwHighDateTime);
-	//printf(thetime.c_str());
-	//printf("\n");
-	//std::ifstream timefile("注册码.txt");
-	//if (timefile.is_open()) {
-	//}
-	//else
-	//{
-		//printf("放入注册码.txt\n");
-		//char name[50];
-		//std::cin >> name;
-	//}
-
-	//char* mac = new char[32];
-	//getMac(mac);
-	//printf("%s\n ", mac);
-    //std::cout << "Hello World!\n"; 
-	//system("run.bat");
-	//run py
-	//WinExec("cmd /c run.bat", SW_HIDE);
-	//run bat
-
-	//run air
-	//读写文件
+	CMyINI* p = new CMyINI();
+	if (p->ReadINI("Setting.ini")==0) {
+		p->SetValue("config", "width", "1024");
+		p->SetValue("config", "height", "768");
+		p->WriteINI("Setting.ini");
+	}
+	std::string w= p->GetValue("config","width");
+	std::string h= p->GetValue("config","height");
+	printf("width=%s",w.c_str());
+	std::string wh = w + "x" + h + ":" + h + "x" + w;
 	
+
 	const char* to_search = "*.xml";
 	long handle;                                                //用于查找的句柄
 	struct _finddata_t fileinfo;                          //文件信息的结构体
 	handle = _findfirst(to_search, &fileinfo);         //第一次查找
 	if (-1 == handle)
 		return -1;
-	printf("%s\n", fileinfo.name);                         //打印出找到的文件的文件名
-	//while (!_findnext(handle, &fileinfo))               //循环查找其他符合的文件，知道找不到其他的为止
-	//{
-	//	printf("%s\n", fileinfo.name);
-	//}
+	printf("%s\n", fileinfo.name); 
 	_findclose(handle);
 
-	_mkdir("xml");
-
+	int md= _mkdir("xml");
 	int i = 0;
 	while (true) {
 		printf("true\n");
@@ -271,109 +189,38 @@ int main()
 		std::string outfilename =fileinfoname.replace(fileinfoname.end()-4, fileinfoname.end(),std::to_string(i));
 		i++;
 		std::ifstream myoutfile(outfilename);
-		//if (myoutfile.is_open()) {
-		//	myoutfile.close();
-		//}else {
-			std::ofstream outfile(outfilename, std::ios::out);
-			std::string temp;
-			while (std::getline(myfile, temp))
-			{
-				const std::regex pattern("(<id>(.+)?</id>)");// regular expression with two capture groups
-				const std::regex pattern2("(<title>(.+)?</title>)");// regular expression with two capture groups
-				if (std::regex_search(temp,pattern)) {
-					std::string replace = "<id>$2."+std::to_string(i)+"</id>"; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
-					std::string newtext = std::regex_replace(temp, pattern, replace);
-					outfile << newtext;
-				}else if (std::regex_search(temp, pattern2)) {
-					std::string replace = "<title>$2." + std::to_string(i) + "</title>"; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
-					std::string newtext = std::regex_replace(temp, pattern2, replace);
-					outfile << newtext;
-				}
-				else
-				{
-					outfile << temp;
-				}
-				outfile << std::endl;
+		std::ofstream outfile(outfilename, std::ios::out);
+		std::string temp;
+		while (std::getline(myfile, temp))
+		{
+			const std::regex pattern("(<id>(.+)?</id>)");// regular expression with two capture groups
+			const std::regex pattern2("(<title>(.+)?</title>)");// regular expression with two capture groups
+			if (std::regex_search(temp,pattern)) {
+				std::string replace = "<id>$2."+std::to_string(i)+"</id>"; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
+				std::string newtext = std::regex_replace(temp, pattern, replace);
+				outfile << newtext;
+			}else if (std::regex_search(temp, pattern2)) {
+				std::string replace = "<title>$2." + std::to_string(i) + "</title>"; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
+				std::string newtext = std::regex_replace(temp, pattern2, replace);
+				outfile << newtext;
 			}
-			outfile.close();
-			myfile.close();
-
+			else
+			{
+				outfile << temp;
+			}
+			outfile << std::endl;
+		}
+		outfile.close();
+		myfile.close();
 			
-			std::string cmd = "AIRSDK\\bin\\adl64 -screensize 1559x720:720x1559 " + outfilename + " .";
-			//std::string cmd = "AIRSDK\\bin\\adl64 -screensize 1559x720:720x1559 xml\\132 .";
-			printf(cmd.c_str());
-			wchar_t* CommandLine = StringToWchar(cmd); //const_cast<wchar_t*>(L"AIRSDK\\bin\\adl64.exe 1.xml"+outfilename);
-			printf("aaaa");
-			if (StartProcess(TEXT("AIRSDK\\bin\\adl64.exe"), CommandLine)) {
-				break;
-			}
-
-			//return 0;
-			//初始化管道
-			/*HANDLE hPipeRead;
-			HANDLE hPipeWrite;
-			SECURITY_ATTRIBUTES saOutPipe;
-			::ZeroMemory(&saOutPipe, sizeof(saOutPipe));
-			saOutPipe.nLength = sizeof(SECURITY_ATTRIBUTES);
-			saOutPipe.lpSecurityDescriptor = NULL;
-			saOutPipe.bInheritHandle = TRUE;
-			if (CreatePipe(&hPipeRead, &hPipeWrite, &saOutPipe, MY_PIPE_BUFFER_SIZE))
-			{
-				//WinExec(cmd.c_str(), SW_HIDE);
-				STARTUPINFO si;
-				memset(&si, 0, sizeof(STARTUPINFO));//初始化si在内存块中的值（详见memset函数）
-				si.cb = sizeof(STARTUPINFO);
-				si.dwFlags = STARTF_USESHOWWINDOW;
-				si.wShowWindow = SW_HIDE;
-				si.hStdOutput = hPipeWrite;
-				si.hStdError = hPipeWrite;
-				//si.hStdInput = hPipeRead;
-				PROCESS_INFORMATION pi;//必备参数设置结束
-
-				std::string cmd = "AIRSDK\\bin\\adl64 -screensize 1559x720:720x1559 " + outfilename + "111 .";
-				printf(cmd.c_str());
-				wchar_t* CommandLine = StringToWchar(cmd); //const_cast<wchar_t*>(L"AIRSDK\\bin\\adl64.exe 1.xml"+outfilename);
-				if (CreateProcess(
-					TEXT("AIRSDK\\bin\\adl64.exe"),
-					CommandLine,
-					NULL,
-					NULL,
-					TRUE,
-					0,
-					NULL,
-					NULL,
-					&si,
-					&pi
-				)) {
-					if (WAIT_TIMEOUT != WaitForSingleObject(pi.hProcess, 3000))
-					{
-						printf("aaaa");
-						DWORD dwReadLen = 0;
-						DWORD dwStdLen = 0;
-						if (PeekNamedPipe(hPipeRead, NULL, 0, NULL, &dwReadLen, NULL) && dwReadLen > 0)
-						{
-							printf("bbbb");
-							char szPipeOut[MY_PIPE_BUFFER_SIZE];
-							::ZeroMemory(szPipeOut, sizeof(szPipeOut));
-							if (ReadFile(hPipeRead, szPipeOut, dwReadLen, &dwStdLen, NULL))
-							{
-								printf("1213213213");
-								printf(szPipeOut);
-								// 输出值
-								int k = 0;
-							}
-							int a = 1;
-						}
-					}
-				}
-				//不使用的句柄最好关掉
-				CloseHandle(pi.hThread);
-				CloseHandle(pi.hProcess);
-			}
-			CloseHandle(hPipeRead);
-			CloseHandle(hPipeWrite);*/
-			//break;
-		//}
+		std::string cmd = "AIRSDK\\bin\\adl64 -screensize "+wh+" " + outfilename + " .";
+		//std::string cmd = "AIRSDK\\bin\\adl64 -screensize 1559x720:720x1559 xml\\132 .";
+		printf(cmd.c_str());
+		wchar_t* CommandLine = StringToWchar(cmd); //const_cast<wchar_t*>(L"AIRSDK\\bin\\adl64.exe 1.xml"+outfilename);
+		printf("aaaa");
+		if (StartProcess(TEXT("AIRSDK\\bin\\adl64.exe"), CommandLine)) {
+			break;
+		}
 	}
 	return 0;
 }

@@ -1,7 +1,8 @@
 ﻿  runbat.cpp
+F:\proj\runbat.exe\runbat\runbat.cpp(116,8): warning C4002: 类函数宏的调用“RtlZeroMemory”参数过多
   正在生成代码
-  1 of 1005 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+  1 of 1353 functions (<0.1%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    1 functions had inline decision re-evaluated but remain unchanged
+    0 functions had inline decision re-evaluated but remain unchanged
   已完成代码的生成
   runbat.vcxproj -> F:\proj\runbat.exe\Release\runbat.exe

@@ -108,7 +108,7 @@ std::string DwordToString(DWORD val)
 }
 int main()
 {
-	printf("多开工具v0.01\n");
+	printf("多开工具v0.02\n");
 	CMyINI* p = new CMyINI();
 	if (p->ReadINI("Setting.ini")==0) {
 		//-profile mobileDevice

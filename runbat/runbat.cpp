@@ -13,7 +13,7 @@
 #include <io.h>
 #include <regex>
 #include "CMyINI.h"
-#define MY_PIPE_BUFFER_SIZE 4096
+#define MY_PIPE_BUFFER_SIZE 102400
 LPCWSTR stringToLPCWSTR(std::string orig)
 {
 	size_t origsize = orig.length() + 1;

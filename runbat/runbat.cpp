@@ -108,7 +108,7 @@ bool StartProcess(LPCWSTR program, LPCWSTR args)
 
 int main()
 {
-	printf("多开工具v0.01\n");
+	printf("多开工具v0.02\n");
 	CMyINI* p = new CMyINI();
 	printf("11\n");
 	if (p->ReadINI("Setting.ini")==0) {

@@ -118,7 +118,7 @@ string CMyINI::GetValue(string root, string key)
 {
 	map<string, SubNode>::iterator itr = map_ini.find(root);
 	map<string, string>::iterator sub_itr = itr->second.sub_node.find(key);
-	if (!(sub_itr->second).empty())
+	if (sub_itr != itr->second.sub_node.end())
 		return sub_itr->second;
 	return "";
 }

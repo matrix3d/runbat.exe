@@ -116,8 +116,8 @@ int main()
 		//-profile mobileDevice
 		p->SetValue("config", "width", "1024");
 		p->SetValue("config", "height", "768");
-		//p->SetValue("config", "profile1", "mobileDevice");
-		//p->SetValue("config", "profile2", "desktop");
+		p->SetValue("config", "profile1", "mobileDevice");
+		p->SetValue("config", "profile2", "desktop");
 		p->SetValue("config", "sdk", "AIRSDK");
 		p->WriteINI("Setting.ini");
 	}
@@ -126,7 +126,7 @@ int main()
 	printf("121\n");
 	std::string h= p->GetValue("config","height");
 	printf("122\n");
-	//std::string pf= p->GetValue("config","profile");
+	std::string pf= p->GetValue("config","profile");
 	printf("123\n");
 	std::string sdk= p->GetValue("config","sdk");
 

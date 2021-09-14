@@ -218,7 +218,6 @@ int main()
 		std::string fileinfonamef = "c:\\xml\\" + newfileinfoname;
 		std::string outfilename = fileinfonamef.replace(fileinfonamef.end()-4, fileinfonamef.end(),std::to_string(i));
 		printf("%s\n", outfilename.c_str());
-		i++;
 		std::ifstream myoutfile(outfilename);
 		std::ofstream outfile(outfilename, std::ios::out);
 		std::string temp;
@@ -232,7 +231,7 @@ int main()
 			if (std::regex_search(temp,pattern3)) {
 				isMobile = true;
 			}
-			if (std::regex_search(temp,pattern)) {
+			if (std::regex_search(temp,pattern)&&i!=0) {
 				std::string replace = "<id>$2."+std::to_string(i)+"</id>"; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
 				std::string newtext = std::regex_replace(temp, pattern, replace);
 				outfile << newtext;
@@ -266,6 +265,7 @@ int main()
 		else {
 			printf("aaaa\n");
 		}
+		i++;
 	}
 
 	char aa[50];

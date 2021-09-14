@@ -228,6 +228,7 @@ int main()
 			const std::regex pattern("(<id>(.+)?</id>)");// regular expression with two capture groups
 			const std::regex pattern2("(<title>(.+)?</title>)");// regular expression with two capture groups
 			const std::regex pattern3("<supportedProfiles>mobileDevice</supportedProfiles>");// regular expression with two capture groups
+			const std::regex pattern4("<extensionID>(.+)?</extensionID>");// regular expression with two capture groups
 			if (std::regex_search(temp,pattern3)) {
 				isMobile = true;
 			}
@@ -238,6 +239,11 @@ int main()
 			}else if (std::regex_search(temp, pattern2)) {
 				std::string replace = "<title>$2." + std::to_string(i) + "</title>"; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
 				std::string newtext = std::regex_replace(temp, pattern2, replace);
+				outfile << newtext;
+			}
+			else if (std::regex_search(temp, pattern4)) {
+				std::string replace = ""; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
+				std::string newtext = std::regex_replace(temp, pattern4, replace);
 				outfile << newtext;
 			}
 			else
@@ -261,5 +267,8 @@ int main()
 			printf("aaaa\n");
 		}
 	}
+
+	char aa[50];
+	cin >> aa;
 	return 0;
 }

@@ -29,6 +29,7 @@ wchar_t* StringToWchar(const std::string& s)
 
 bool StartProcess(LPCWSTR program, LPCWSTR args)
 {
+	printf("StartProcess1\n");
 	bool ret = true;
 	//初始化管道
 	HANDLE hPipeRead;
@@ -40,6 +41,7 @@ bool StartProcess(LPCWSTR program, LPCWSTR args)
 	saOutPipe.bInheritHandle = TRUE;
 	if (CreatePipe(&hPipeRead, &hPipeWrite, &saOutPipe, MY_PIPE_BUFFER_SIZE))
 	{
+		printf("StartProcess2\n");
 		PROCESS_INFORMATION processInfo;
 		::ZeroMemory(&processInfo, sizeof(processInfo));
 		STARTUPINFO startupInfo;
@@ -60,16 +62,19 @@ bool StartProcess(LPCWSTR program, LPCWSTR args)
 			&startupInfo,
 			&processInfo))
 		{
+			printf("StartProcess3\n");
 			if (WAIT_TIMEOUT != WaitForSingleObject(processInfo.hProcess, 15000))
 			{
 				DWORD dwReadLen = 0;
 				DWORD dwStdLen = 0;
 				if (PeekNamedPipe(hPipeRead, NULL, 0, NULL, &dwReadLen, NULL) && dwReadLen > 0)
 				{
+					printf("StartProcess4\n");
 					char szPipeOut[MY_PIPE_BUFFER_SIZE];
 					::ZeroMemory(szPipeOut, sizeof(szPipeOut),MY_PIPE_BUFFER_SIZE);
 					if (ReadFile(hPipeRead, szPipeOut, dwReadLen, &dwStdLen, NULL))
 					{
+						printf("StartProcess5\n");
 						szPipeOut[MY_PIPE_BUFFER_SIZE - 1] = 0;
 						std::string errtxt = "invocation forwarded to primary instance";
 						std::string szPipeOutStr = szPipeOut;
@@ -101,29 +106,43 @@ bool StartProcess(LPCWSTR program, LPCWSTR args)
 	return ret;
 }
 
-std::string DwordToString(DWORD val)
-{
-	std::string cur_str = std::to_string(long long(val));
-	return cur_str;
-}
 int main()
 {
 	printf("多开工具v0.01\n");
 	CMyINI* p = new CMyINI();
+	printf("11\n");
 	if (p->ReadINI("Setting.ini")==0) {
+		printf("11.1\n");
 		//-profile mobileDevice
 		p->SetValue("config", "width", "1024");
 		p->SetValue("config", "height", "768");
-		p->SetValue("config", "profile1", "mobileDevice");
-		p->SetValue("config", "profile2", "desktop");
+		//p->SetValue("config", "profile1", "mobileDevice");
+		//p->SetValue("config", "profile2", "desktop");
+		p->SetValue("config", "sdk", "AIRSDK");
 		p->WriteINI("Setting.ini");
 	}
+	printf("12\n");
 	std::string w= p->GetValue("config","width");
+	printf("121\n");
 	std::string h= p->GetValue("config","height");
-	std::string pf= p->GetValue("config","profile");
-	if (pf.size()==0) {
-		pf = "mobileDevice";
+	printf("122\n");
+	//std::string pf= p->GetValue("config","profile");
+	printf("123\n");
+	std::string sdk= p->GetValue("config","sdk");
+
+	ifstream f(sdk);
+	if (!f.good()) {
+		printf("setting中填写sdk路径\n");
+		char insdk[50];
+		cin >> insdk;
+		return -1;
 	}
+
+	printf("13\n");
+	//if (pf.size()==0) {
+	//	pf = "mobileDevice";
+	//}
+	printf("2\n");
 	std::string wh = w + "x" + h + ":" + h + "x" + w;
 
 	struct _finddata_t fileinfo;                          //文件信息的结构体
@@ -132,13 +151,19 @@ int main()
 	long handle;                                                //用于查找的句柄
 	handle = _findfirst(to_search, &fileinfo);         //第一次查找
 	std::string fileinfoname = fileinfo.name;
+	printf("3\n");
 	if (-1 == handle) {//没找到，找swf
-		const char* to_searchswf = "*.swf";
-		long handleswf;                                                //用于查找的句柄
-		struct _finddata_t fileinfoswf;                          //文件信息的结构体
-		handleswf = _findfirst(to_searchswf, &fileinfoswf);         //第一次查找
-		if (-1 != handleswf) {//swf找到了
-			const char* xmltext = R"V0G0N(
+		ifstream f("META-INF\\AIR\\application.xml");
+		if (f.good()) {
+			fileinfoname = "META-INF\\AIR\\application.xml";
+		}
+		else {
+			const char* to_searchswf = "*.swf";
+			long handleswf;                                                //用于查找的句柄
+			struct _finddata_t fileinfoswf;                          //文件信息的结构体
+			handleswf = _findfirst(to_searchswf, &fileinfoswf);         //第一次查找
+			if (-1 != handleswf) {//swf找到了
+				const char* xmltext = R"V0G0N(
             <application xmlns="http://ns.adobe.com/air/application/33.1">
 			<id>{name}</id>
 			<filename>{name}</filename>
@@ -159,45 +184,53 @@ int main()
 			<supportedProfiles>mobileDevice</supportedProfiles>
 		</application>
 		)V0G0N";
-			const std::regex pattern("\\{name\\}");
-			std::string replaceswf = fileinfoswf.name; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
-			std::string xmltextstr = std::regex_replace(xmltext, pattern, replaceswf);
-			printf("%s\n", xmltextstr.c_str());
-			_findclose(handleswf);
-			//写文件
-			fileinfoname = "app.xml";
-			std::ofstream outfilexml(fileinfoname, std::ios::out);
-			outfilexml << xmltextstr;
-			outfilexml << std::endl;
-			outfilexml.close();
-		}
-		else {
-			return -1;
+				const std::regex pattern("\\{name\\}");
+				std::string replaceswf = fileinfoswf.name; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
+				std::string xmltextstr = std::regex_replace(xmltext, pattern, replaceswf);
+				printf("%s\n", xmltextstr.c_str());
+				_findclose(handleswf);
+				//写文件
+				fileinfoname = "app.xml";
+				std::ofstream outfilexml(fileinfoname, std::ios::out);
+				outfilexml << xmltextstr;
+				outfilexml << std::endl;
+				outfilexml.close();
+			}
+			else {
+				return -1;
+			}
 		}
 	}
 	else
 	{
 		fileinfoname =fileinfo.name;
 	}
-
+	printf("4\n");
 	printf("%s\n", fileinfoname.c_str());
 	_findclose(handle);
 
-	int md= _mkdir("xml");
+	int md= _mkdir("c:\\xml");
 	int i = 0;
 	while (true) {
 		std::ifstream myfile(fileinfoname);
-		std::string fileinfonamef = "xml\\" + fileinfoname;
+		const std::regex pattern4("\\\\");
+		std::string newfileinfoname = std::regex_replace(fileinfoname, pattern4, "_");
+		std::string fileinfonamef = "c:\\xml\\" + newfileinfoname;
 		std::string outfilename = fileinfonamef.replace(fileinfonamef.end()-4, fileinfonamef.end(),std::to_string(i));
 		printf("%s\n", outfilename.c_str());
 		i++;
 		std::ifstream myoutfile(outfilename);
 		std::ofstream outfile(outfilename, std::ios::out);
 		std::string temp;
+		bool isMobile = false;
 		while (std::getline(myfile, temp))
 		{
 			const std::regex pattern("(<id>(.+)?</id>)");// regular expression with two capture groups
 			const std::regex pattern2("(<title>(.+)?</title>)");// regular expression with two capture groups
+			const std::regex pattern3("<supportedProfiles>mobileDevice</supportedProfiles>");// regular expression with two capture groups
+			if (std::regex_search(temp,pattern3)) {
+				isMobile = true;
+			}
 			if (std::regex_search(temp,pattern)) {
 				std::string replace = "<id>$2."+std::to_string(i)+"</id>"; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
 				std::string newtext = std::regex_replace(temp, pattern, replace);
@@ -215,15 +248,17 @@ int main()
 		}
 		outfile.close();
 		myfile.close();
-		//printf("%s\n", pf.c_str());
-		//pf = "mobileDevice";
-		std::string cmd = "AIRSDK\\bin\\adl64 -screensize "+wh+" " + outfilename + " .";
-		//if (pf.compare("mobileDevice")!=0) {
-		//	cmd = "AIRSDK\\bin\\adl64 -profile " + pf + " " + outfilename + " .";
-		//}
+		std::string cmd = sdk+"\\bin\\adl64 "+(isMobile?("-screensize "+wh+" "):"") + outfilename + " .";
+		printf("aaaa\n");
 		printf("%s\n",cmd.c_str());
-		if (StartProcess(TEXT("AIRSDK\\bin\\adl64.exe"), StringToWchar(cmd))) {
+		std::string prog = sdk + "\\bin\\adl64.exe";
+		printf("cccc\n");
+		if (StartProcess(StringToWchar(prog), StringToWchar(cmd))) {
+			printf("dddd\n");
 			break;
+		}
+		else {
+			printf("aaaa\n");
 		}
 	}
 	return 0;

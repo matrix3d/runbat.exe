@@ -130,7 +130,7 @@ int main()
 	printf("123\n");
 	std::string sdk= p->GetValue("config","sdk");
 
-	ifstream f(sdk);
+	ifstream f(sdk+"\\bin\adl64.exe");
 	if (!f.good()) {
 		printf("setting中填写sdk路径\n");
 		char insdk[50];

@@ -133,8 +133,7 @@ int main()
 	ifstream f(sdk+"\\bin\\adl64.exe");
 	if (!f.good()) {
 		printf("setting中填写sdk路径\n");
-		char insdk[50];
-		cin >> insdk;
+		cin.get();
 		return -1;
 	}
 
@@ -144,26 +143,26 @@ int main()
 	//}
 	printf("2\n");
 	std::string wh = w + "x" + h + ":" + h + "x" + w;
+	std::string fileinfoname;
+	ifstream ff("META-INF\\AIR\\application.xml");
+	if (ff.good()) {
+		fileinfoname = "META-INF\\AIR\\application.xml";
+	}
+	else {
+		struct _finddata_t fileinfo;                          //文件信息的结构体
+		const char* to_search = "*.xml";
+		long handle;                                                //用于查找的句柄
+		handle = _findfirst(to_search, &fileinfo);         //第一次查找
 
-	struct _finddata_t fileinfo;                          //文件信息的结构体
-	
-	const char* to_search = "*.xml";
-	long handle;                                                //用于查找的句柄
-	handle = _findfirst(to_search, &fileinfo);         //第一次查找
-	std::string fileinfoname = fileinfo.name;
-	printf("3\n");
-	if (-1 == handle) {//没找到，找swf
-		ifstream f("META-INF\\AIR\\application.xml");
-		if (f.good()) {
-			fileinfoname = "META-INF\\AIR\\application.xml";
-		}
-		else {
-			const char* to_searchswf = "*.swf";
-			long handleswf;                                                //用于查找的句柄
-			struct _finddata_t fileinfoswf;                          //文件信息的结构体
-			handleswf = _findfirst(to_searchswf, &fileinfoswf);         //第一次查找
-			if (-1 != handleswf) {//swf找到了
-				const char* xmltext = R"V0G0N(
+		printf("3\n");
+		if (-1 == handle) {//没找到，找swf
+			
+				const char* to_searchswf = "*.swf";
+				long handleswf;                                                //用于查找的句柄
+				struct _finddata_t fileinfoswf;                          //文件信息的结构体
+				handleswf = _findfirst(to_searchswf, &fileinfoswf);         //第一次查找
+				if (-1 != handleswf) {//swf找到了
+					const char* xmltext = R"V0G0N(
             <application xmlns="http://ns.adobe.com/air/application/33.1">
 			<id>{name}</id>
 			<filename>{name}</filename>
@@ -184,30 +183,30 @@ int main()
 			<supportedProfiles>mobileDevice</supportedProfiles>
 		</application>
 		)V0G0N";
-				const std::regex pattern("\\{name\\}");
-				std::string replaceswf = fileinfoswf.name; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
-				std::string xmltextstr = std::regex_replace(xmltext, pattern, replaceswf);
-				printf("%s\n", xmltextstr.c_str());
-				_findclose(handleswf);
-				//写文件
-				fileinfoname = "app.xml";
-				std::ofstream outfilexml(fileinfoname, std::ios::out);
-				outfilexml << xmltextstr;
-				outfilexml << std::endl;
-				outfilexml.close();
-			}
-			else {
-				return -1;
-			}
+					const std::regex pattern("\\{name\\}");
+					std::string replaceswf = fileinfoswf.name; //$2表示匹配模式串的第二个字串，即以a,e,i,o,u开头的单词
+					std::string xmltextstr = std::regex_replace(xmltext, pattern, replaceswf);
+					printf("%s\n", xmltextstr.c_str());
+					_findclose(handleswf);
+					//写文件
+					fileinfoname = "app.xml";
+					std::ofstream outfilexml(fileinfoname, std::ios::out);
+					outfilexml << xmltextstr;
+					outfilexml << std::endl;
+					outfilexml.close();
+				}
+				else {
+					return -1;
+				}
 		}
+		else
+		{
+			fileinfoname = fileinfo.name;
+		}
+		printf("4\n");
+		printf("%s\n", fileinfoname.c_str());
+		_findclose(handle);
 	}
-	else
-	{
-		fileinfoname =fileinfo.name;
-	}
-	printf("4\n");
-	printf("%s\n", fileinfoname.c_str());
-	_findclose(handle);
 
 	int md= _mkdir("c:\\xml");
 	int i = 0;
@@ -268,7 +267,6 @@ int main()
 		i++;
 	}
 
-	char aa[50];
-	cin >> aa;
+	cin.get();
 	return 0;
 }

@@ -5,7 +5,7 @@
 #include <Windows.h>
 #include <string>
 #include <direct.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <io.h>
 #include <regex>
 #include "CMyINI.h"
@@ -129,6 +129,9 @@ int main()
 	std::string pf= p->GetValue("config","profile");
 	printf("123\n");
 	std::string sdk= p->GetValue("config","sdk");
+	if (sdk=="") {
+		sdk = "AIRSDK";
+	}
 
 	ifstream f(sdk+"\\bin\\adl64.exe");
 	if (!f.good()) {
